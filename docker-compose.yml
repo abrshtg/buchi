@@ -1,0 +1,27 @@
+version: "3"
+
+services:
+  web:
+    build: .
+    env_file:
+      - .env
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+  db:
+    image: mongo
+    restart: always
+    ports:
+      - "27016:27016"
+    command:
+      mongod --quiet --logpath /dev/null
+
+      # - "MONGO_INITDB_DATABASE=${MONGO_DB}"
+      # - "MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}"
+      # - "MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASS}"
