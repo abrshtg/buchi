@@ -1,5 +1,5 @@
-from pymongo import MongoClient
 import os
+from pymongo import MongoClient
 USERNAME = os.environ.get('BUCHI')
 PASSWORD = os.environ.get('BUCHI_PASS')
 
