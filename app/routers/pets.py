@@ -64,13 +64,14 @@ async def search_pets(pet_type: str = Query(None), good_with_children: bool = Qu
     if good_with_children is not None:
         search_filter["good_with_children"] = str(good_with_children).lower()
     if age is not None:
-        search_filter["age"] = {"$in": age}
+        search_filter["age"] = ','.join(age)
     if gender is not None:
-        search_filter["gender"] = {"$in": gender}
+        search_filter["gender"] = ','.join(gender)
     if size is not None:
-        search_filter["size"] = {"$in": size}
+        search_filter["size"] = ','.join(size)
     local_results = list(db.pets.find(search_filter).limit(limit))
 
+    print(search_filter)
     # search for additional pets using the Petfinder API
     petfinder_results = []
 
@@ -98,8 +99,9 @@ async def search_pets(pet_type: str = Query(None), good_with_children: bool = Qu
                 "photo_url": pet['photos']
             })
     else:
+        print('Error: ', response.json())
         raise HTTPException(
-            status_code=response.json()['detail']['status'], detail=response.json())
+            status_code=response.json()['status'], detail=response.json())
 
     # combine the local and Petfinder results and return them
     results = local_results + petfinder_results
