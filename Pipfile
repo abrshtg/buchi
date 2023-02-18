@@ -10,6 +10,8 @@ requests = "*"
 python-multipart = "*"
 pymongo = "*"
 mongoengine = "*"
+python-dotenv = "*"
+cloudinary = "*"
 
 [dev-packages]
 autopep8 = "*"

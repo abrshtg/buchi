@@ -1,8 +1,15 @@
-import os
+from dotenv import dotenv_values
 from pymongo import MongoClient
-USERNAME = os.environ.get('BUCHI')
-PASSWORD = os.environ.get('BUCHI_PASS')
+import cloudinary
 
-client = MongoClient(
-    f"mongodb+srv://{USERNAME}:{PASSWORD}@cluster0.mg1yqdj.mongodb.net/?retryWrites=true&w=majority")
+config = dotenv_values('../.env')
+
+cloudinary.config(
+    api_key=config.get('API_KEY'),
+    api_secret=config.get('API_SECRET'),
+    cloud_name=config.get('CLOUD_NAME'),
+    secure=True
+)
+
+client = MongoClient(config.get('DATABASE_URL'))
 db = client["buchidb"]

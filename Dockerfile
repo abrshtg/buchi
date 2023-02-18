@@ -1,14 +1,10 @@
-# Pull base image
 FROM python:3.10.4-slim-bullseye
-# Set environment variables
 ENV PIP_DISABLE_PIP_VERSION_CHECK 1
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
-# Set work directory
-RUN mkdir /code
-WORKDIR /code/app
-# Install dependencies
-COPY ./requirements.txt .
-RUN pip install -r requirements.txt
-# Copy project
+WORKDIR /usr/scr/buchi
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
+WORKDIR /usr/scr/buchi/app
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

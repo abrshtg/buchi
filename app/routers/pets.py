@@ -3,6 +3,8 @@ from typing import List
 from fastapi import APIRouter, HTTPException, File, Query, UploadFile
 from database import db
 import pydantic
+from cloudinary.uploader import upload
+
 
 pydantic.json.ENCODERS_BY_TYPE[ObjectId] = str
 
@@ -42,14 +44,16 @@ async def create_pet(name: str, pet_type: str, good_with_children: bool, age: st
     pet_id = db.pets.insert_one(pet_data).inserted_id
 
     # save the pet's photo to disk and get its URL
-    photo_extension = photo.filename.split(".")[-1]
-    photo_filename = f"{pet_id}.{photo_extension}"
-    photo_path = f"images/{photo_filename}"
-    with open(photo_path, "wb") as f:
-        f.write(photo.file.read())
+    # photo_extension = photo.filename.split(".")[-1]
+    # photo_filename = f"{pet_id}.{photo_extension}"
+    # photo_path = f"images/{photo_filename}"
+    # with open(photo_path, "wb") as f:
+    #     f.write(photo.file.read())
+    img = upload(photo.file)
+    img_url = img.get('url')
     # replace with your own domain name or CDN
-    photo_url = f"http://localhost:8000/{photo_path}"
-    db.pets.update_one({"_id": pet_id}, {"$set": {"photo_url": photo_url}})
+    # photo_url = f"http://localhost:8000/{photo_path}"
+    db.pets.update_one({"_id": pet_id}, {"$set": {"photo_url": img_url}})
 
     return {"id": str(pet_id)}
 
@@ -68,7 +72,6 @@ async def search_pets(pet_type: str = Query(None), good_with_children: bool = Qu
         search_filter["gender"] = {"$in": gender}
     if size is not None:
         search_filter["size"] = {"$in": size}
-    print(list(db.pets.find(search_filter).limit(limit))+[])
     local_results = list(db.pets.find(search_filter).limit(limit))
 
     # search for additional pets using the Petfinder API
