@@ -99,7 +99,7 @@ async def search_pets(pet_type: str = Query(None), good_with_children: bool = Qu
             })
     else:
         raise HTTPException(
-            status_code=400, detail=response.json())
+            status_code=response.json()['detail']['status'], detail=response.json())
 
     # combine the local and Petfinder results and return them
     results = local_results + petfinder_results
