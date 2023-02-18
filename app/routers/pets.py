@@ -41,11 +41,11 @@ async def create_pet(name: str, pet_type: str, good_with_children: bool, age: st
     pet_data = {
         "source": "local",
         "name": name,
-        "type": pet_type,
-        "good_with_children": good_with_children,
-        "age": age,
-        "gender": gender,
-        "size": size,
+        "type": pet_type.lower(),
+        "good_with_children": str(good_with_children).lower(),
+        "age": age.lower(),
+        "gender": gender.lower(),
+        "size": size.lower(),
         "photo_url": img_url,
     }
 
@@ -58,25 +58,31 @@ async def create_pet(name: str, pet_type: str, good_with_children: bool, age: st
 @router.get("/pets")
 async def search_pets(pet_type: str = Query(None), good_with_children: bool = Query(None), age: List[str] = Query(None), gender: List[str] = Query(None), size: List[str] = Query(None), limit: int = Query(...)):
     # search for pets in the local database
-    search_filter = {}
+    search1 = {}
+    search2 = {}
     if pet_type is not None:
-        search_filter["type"] = pet_type
+        search1["type"] = search2["type"] = pet_type.lower()
     if good_with_children is not None:
-        search_filter["good_with_children"] = str(good_with_children).lower()
+        search1["good_with_children"] = search2["good_with_children"] = str(
+            good_with_children).lower()
     if age is not None:
-        search_filter["age"] = ','.join(age)
+        search1["age"] = {"$in": [a.lower() for a in age]}
+        search2["age"] = ','.join(age)
     if gender is not None:
-        search_filter["gender"] = ','.join(gender)
+        search1["gender"] = {"$in": [g.lower() for g in gender]}
+        search2["gender"] = ','.join(gender)
     if size is not None:
-        search_filter["size"] = ','.join(size)
-    local_results = list(db.pets.find(search_filter).limit(limit))
+        search1["size"] = {"$in": [s.lower() for s in size]}
+        search2["size"] = ','.join(size)
 
-    print(search_filter)
+    local_results = list(db.pets.find(search1).limit(limit))
+
+    print(search1)
     # search for additional pets using the Petfinder API
     petfinder_results = []
 
     # make request to Petfinder API
-    response = requests.get('https://api.petfinder.com/v2/animals', params=search_filter, headers={
+    response = requests.get('https://api.petfinder.com/v2/animals', params=search2, headers={
         'Authorization': f'Bearer {os.environ.get("PET_ACCESS_TOKEN")}'
     })
     print('response: ', response.json())
