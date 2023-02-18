@@ -1,11 +1,11 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Form
 from database import db
 
 router = APIRouter()
 
 
 @router.post("/customers")
-async def create_customer(name: str, phone_number: str):
+async def create_customer(name: str = Form(), phone_number: str = Form()):
     # check if customer already exists in the database
     existing_customer = db.customers.find_one({"phone_number": phone_number})
     if existing_customer is not None:
