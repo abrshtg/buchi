@@ -30,20 +30,20 @@ async def create_adoption(customer_id: str = Form(), pet_id: str = Form()):
         "pet_id": pet_id,
         "timestamp": datetime.utcnow()
     })
-    return {"adoption_id": str(result.inserted_id)}
+    return {"status": "success", "adoption_id": str(result.inserted_id)}
 
 
 @router.get("/adoptions")
-async def get_adoptions(start_date: Optional[datetime] = None, end_date: Optional[datetime] = None):
+async def get_adoptions(fromDate: Optional[datetime] = None, toDate: Optional[datetime] = None):
     # set default start and end dates if none are provided
-    if start_date is None:
-        start_date = datetime.min
+    if fromDate is None:
+        fromDate = datetime.min
     if end_date is None:
         end_date = datetime.max
 
     # retrieve all adoption records within the date range
     adoptions = db.adoptions.find({
-        "timestamp": {"$gte": start_date, "$lt": end_date}
+        "timestamp": {"$gte": fromDate, "$lt": end_date}
     }).sort([("timestamp", pymongo.DESCENDING)])
 
     # format the adoption records for output
