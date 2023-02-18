@@ -31,17 +31,12 @@ async def create_pet(name: str, pet_type: str, good_with_children: bool, age: st
     if not photos:
         raise HTTPException(
             status_code=400, detail="Pet photo cannot be empty")
+
     img_url = []
     for img in photos:
+        # upload the pet's photo to cloudinary and get its URL
         f = upload(img.file)
         img_url.append(f.get('url'))
-    # upload the pet's photo to cloudinary and get its URL
-    # img1 = upload(photo1.file)
-    # img2 = upload(photo2.file)
-    # img3 = upload(photo3.file)
-    # img_url1 = img1.get('url')
-    # img_url2 = img2.get('url')
-    # img_url3 = img3.get('url')
 
     pet_data = {
         "source": "local",
@@ -104,7 +99,7 @@ async def search_pets(pet_type: str = Query(None), good_with_children: bool = Qu
             })
     else:
         raise HTTPException(
-            status_code=400, detail="Failed to retrieve pets from Petfinder API")
+            status_code=400, detail=response.json())
 
     # combine the local and Petfinder results and return them
     results = local_results + petfinder_results
