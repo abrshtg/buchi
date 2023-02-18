@@ -1,10 +1,11 @@
+import os
 from bson.objectid import ObjectId
 from typing import List
 from fastapi import APIRouter, HTTPException, File, Query, UploadFile
 from database import db
 import pydantic
 from cloudinary.uploader import upload
-
+import requests
 
 pydantic.json.ENCODERS_BY_TYPE[ObjectId] = str
 
@@ -31,7 +32,10 @@ async def create_pet(name: str, pet_type: str, good_with_children: bool, age: st
         raise HTTPException(
             status_code=400, detail="Pet photo cannot be empty")
 
-    # insert the pet into the database
+    # upload the pet's photo to cloudinary and get its URL
+    img = upload(photo.file)
+    img_url = img.get('url')
+
     pet_data = {
         "name": name,
         "type": pet_type,
@@ -39,21 +43,11 @@ async def create_pet(name: str, pet_type: str, good_with_children: bool, age: st
         "age": age,
         "gender": gender,
         "size": size,
-        "photo_url": "",
+        "photo_url": img_url,
     }
-    pet_id = db.pets.insert_one(pet_data).inserted_id
 
-    # save the pet's photo to disk and get its URL
-    # photo_extension = photo.filename.split(".")[-1]
-    # photo_filename = f"{pet_id}.{photo_extension}"
-    # photo_path = f"images/{photo_filename}"
-    # with open(photo_path, "wb") as f:
-    #     f.write(photo.file.read())
-    img = upload(photo.file)
-    img_url = img.get('url')
-    # replace with your own domain name or CDN
-    # photo_url = f"http://localhost:8000/{photo_path}"
-    db.pets.update_one({"_id": pet_id}, {"$set": {"photo_url": img_url}})
+    # insert the pet into the database and get its id
+    pet_id = db.pets.insert_one(pet_data).inserted_id
 
     return {"id": str(pet_id)}
 
@@ -65,7 +59,7 @@ async def search_pets(pet_type: str = Query(None), good_with_children: bool = Qu
     if pet_type is not None:
         search_filter["type"] = pet_type
     if good_with_children is not None:
-        search_filter["good_with_children"] = good_with_children
+        search_filter["good_with_children"] = str(good_with_children).lower()
     if age is not None:
         search_filter["age"] = {"$in": age}
     if gender is not None:
@@ -76,7 +70,32 @@ async def search_pets(pet_type: str = Query(None), good_with_children: bool = Qu
 
     # search for additional pets using the Petfinder API
     petfinder_results = []
-    # code to search the Petfinder API goes here
+
+    # make request to Petfinder API
+    response = requests.get('https://api.petfinder.com/v2/animals', params=search_filter, headers={
+        'Authorization': f'Bearer {os.environ.get("PET_ACCESS_TOKEN")}'
+    })
+    print('response: ', response.json())
+    # check if request was successful
+    if response.status_code == 200:
+        # extract relevant data from response
+        data = response.json()['animals']
+        # print('*'*10, data[5]['photos'])
+
+        for pet in data:
+            # print(pet['photos'][''])
+            petfinder_results.append({
+                "name": pet['name'],
+                "type": pet['type'],
+                "good_with_children": pet['environment']['children'],
+                "age": pet['age'],
+                "gender": pet['gender'],
+                "size": pet['size'],
+                "photo_url": pet['photos']
+            })
+    else:
+        raise HTTPException(
+            status_code=400, detail="Failed to retrieve pets from Petfinder API")
 
     # combine the local and Petfinder results and return them
     results = local_results + petfinder_results
