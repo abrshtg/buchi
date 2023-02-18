@@ -13,7 +13,7 @@ router = APIRouter()
 
 
 @router.post("/pets")
-async def create_pet(name: str, pet_type: str, good_with_children: bool, age: str, gender: str, size: str, photo: UploadFile = File(...)):
+async def create_pet(name: str, pet_type: str, good_with_children: bool, age: str, gender: str, size: str, photos: List[UploadFile] = File(...)):
 
     # Validate the data
     if not name:
@@ -28,15 +28,23 @@ async def create_pet(name: str, pet_type: str, good_with_children: bool, age: st
             status_code=400, detail="Pet gender cannot be empty")
     if not size:
         raise HTTPException(status_code=400, detail="Pet size cannot be empty")
-    if not photo:
+    if not photos:
         raise HTTPException(
             status_code=400, detail="Pet photo cannot be empty")
-
+    img_url = []
+    for img in photos:
+        f = upload(img.file)
+        img_url.append(f.get('url'))
     # upload the pet's photo to cloudinary and get its URL
-    img = upload(photo.file)
-    img_url = img.get('url')
+    # img1 = upload(photo1.file)
+    # img2 = upload(photo2.file)
+    # img3 = upload(photo3.file)
+    # img_url1 = img1.get('url')
+    # img_url2 = img2.get('url')
+    # img_url3 = img3.get('url')
 
     pet_data = {
+        "source": "local",
         "name": name,
         "type": pet_type,
         "good_with_children": good_with_children,
@@ -49,7 +57,7 @@ async def create_pet(name: str, pet_type: str, good_with_children: bool, age: st
     # insert the pet into the database and get its id
     pet_id = db.pets.insert_one(pet_data).inserted_id
 
-    return {"id": str(pet_id)}
+    return {"status": "success", "id": str(pet_id)}
 
 
 @router.get("/pets")
@@ -85,6 +93,7 @@ async def search_pets(pet_type: str = Query(None), good_with_children: bool = Qu
         for pet in data:
             # print(pet['photos'][''])
             petfinder_results.append({
+                "source": "petfinder",
                 "name": pet['name'],
                 "type": pet['type'],
                 "good_with_children": pet['environment']['children'],
@@ -99,4 +108,4 @@ async def search_pets(pet_type: str = Query(None), good_with_children: bool = Qu
 
     # combine the local and Petfinder results and return them
     results = local_results + petfinder_results
-    return results[:limit]
+    return {"status": "success", "pets": results[:limit]}
