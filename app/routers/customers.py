@@ -6,6 +6,12 @@ router = APIRouter()
 
 @router.post("/customers")
 async def create_customer(name: str = Form(), phone_number: str = Form()):
+
+    if not name:
+        raise HTTPException(status_code=400, detail="Name can not be empty.")
+    if not phone_number:
+        raise HTTPException(
+            status_code=400, detail="phone number can not be empty.")
     # check if customer already exists in the database
     existing_customer = db.customers.find_one({"phone_number": phone_number})
     if existing_customer is not None:
@@ -16,4 +22,4 @@ async def create_customer(name: str = Form(), phone_number: str = Form()):
         "name": name,
         "phone_number": phone_number,
     })
-    return {"customer_id": str(result.inserted_id)}
+    return {"status": "success", "customer_id": str(result.inserted_id)}

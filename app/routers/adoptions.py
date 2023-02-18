@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 from bson import ObjectId
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Form
 import pymongo
 from database import db
 
@@ -9,7 +9,13 @@ router = APIRouter()
 
 
 @router.post("/adoptions")
-async def create_adoption(customer_id: str, pet_id: str):
+async def create_adoption(customer_id: str = Form(), pet_id: str = Form()):
+
+    if not customer_id:
+        raise HTTPException(
+            status_code=400, detail='customer id can not be empty.')
+    if not pet_id:
+        raise HTTPException(status_code=400, detail="pet id can not be empty.")
     # check if the customer and pet exist in the database
     existing_customer = db.customers.find_one({"_id": ObjectId(customer_id)})
     if existing_customer is None:
