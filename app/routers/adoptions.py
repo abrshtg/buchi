@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 from typing import Optional
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Form
@@ -28,18 +28,18 @@ async def create_adoption(customer_id: str = Form(), pet_id: str = Form()):
     result = db.adoptions.insert_one({
         "customer_id": customer_id,
         "pet_id": pet_id,
-        "timestamp": datetime.utcnow()
+        "timestamp": datetime.date.today()
     })
     return {"status": "success", "adoption_id": str(result.inserted_id)}
 
 
 @router.get("/api/v1/adoptions")
-async def get_adoptions(fromDate: Optional[datetime] = None, toDate: Optional[datetime] = None, limit: int = None):
+async def get_adoptions(fromDate: Optional[datetime.date] = None, toDate: Optional[datetime.date] = None, limit: int = None):
     # set default start and end dates if none are provided
     if fromDate is None:
-        fromDate = datetime.min
+        fromDate = datetime.date.min
     if toDate is None:
-        toDate = datetime.max
+        toDate = datetime.date.max
 
     # retrieve all adoption records within the date range
     adoptions = db.adoptions.find({
@@ -53,7 +53,7 @@ async def get_adoptions(fromDate: Optional[datetime] = None, toDate: Optional[da
         adoption_id = str(adoption["_id"])
         customer_id = str(adoption["customer_id"])
         pet_id = str(adoption["pet_id"])
-        timestamp = adoption["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = adoption["timestamp"].strftime("%Y-%m-%d")
         adoption_list.append({
             "adoption_id": adoption_id,
             "customer_id":  db.customers.find_one({"_id": ObjectId(customer_id)}),
@@ -64,4 +64,4 @@ async def get_adoptions(fromDate: Optional[datetime] = None, toDate: Optional[da
     if limit:
         adoption_list = adoption_list[:limit]
 
-    return {"status": "success", "data": adoption_list.reverse()}
+    return {"status": "success", "data": adoption_list[::-1]}
