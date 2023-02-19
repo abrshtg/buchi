@@ -12,7 +12,7 @@ pydantic.json.ENCODERS_BY_TYPE[ObjectId] = str
 router = APIRouter()
 
 
-@router.post("/pets")
+@router.post("/api/v1/pets")
 async def create_pet(name: str, pet_type: str, good_with_children: bool, age: str, gender: str, size: str, photos: List[UploadFile] = File(...)):
 
     # Validate the data
@@ -55,7 +55,7 @@ async def create_pet(name: str, pet_type: str, good_with_children: bool, age: st
     return {"status": "success", "id": str(pet_id)}
 
 
-@router.get("/pets")
+@router.get("/api/v1/pets")
 async def search_pets(pet_type: str = Query(None), good_with_children: bool = Query(None), age: List[str] = Query(None), gender: List[str] = Query(None), size: List[str] = Query(None), limit: int = Query(...)):
     # search for pets in the local database
     search1 = {}

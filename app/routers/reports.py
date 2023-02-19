@@ -7,7 +7,7 @@ from database import db
 router = APIRouter()
 
 
-@router.post("/generateReport")
+@router.post("/api/v1/generateReport")
 async def generate_report(start_date: datetime, end_date: datetime) -> Dict[str, List]:
     # query the database for adoptions within the date range
     adoptions = db.adoptions.find({

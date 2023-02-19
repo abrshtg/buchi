@@ -4,7 +4,7 @@ from database import db
 router = APIRouter()
 
 
-@router.post("/customers")
+@router.post("/api/v1/customers")
 async def create_customer(name: str = Form(), phone_number: str = Form()):
 
     if not name:

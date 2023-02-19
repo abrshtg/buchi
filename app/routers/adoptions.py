@@ -8,7 +8,7 @@ from database import db
 router = APIRouter()
 
 
-@router.post("/adoptions")
+@router.post("/api/v1/adoptions")
 async def create_adoption(customer_id: str = Form(), pet_id: str = Form()):
 
     if not customer_id:
@@ -33,7 +33,7 @@ async def create_adoption(customer_id: str = Form(), pet_id: str = Form()):
     return {"status": "success", "adoption_id": str(result.inserted_id)}
 
 
-@router.get("/adoptions")
+@router.get("/api/v1/adoptions")
 async def get_adoptions(fromDate: Optional[datetime] = None, toDate: Optional[datetime] = None):
     # set default start and end dates if none are provided
     if fromDate is None:
