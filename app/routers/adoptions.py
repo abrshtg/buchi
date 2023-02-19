@@ -38,25 +38,26 @@ async def get_adoptions(fromDate: Optional[datetime] = None, toDate: Optional[da
     # set default start and end dates if none are provided
     if fromDate is None:
         fromDate = datetime.min
-    if end_date is None:
-        end_date = datetime.max
+    if toDate is None:
+        toDate = datetime.max
 
     # retrieve all adoption records within the date range
     adoptions = db.adoptions.find({
-        "timestamp": {"$gte": fromDate, "$lt": end_date}
+        "timestamp": {"$gte": fromDate, "$lt": toDate}
     }).sort([("timestamp", pymongo.DESCENDING)])
 
     # format the adoption records for output
-    adoption_list = []
+
+    adoption_list = {"status": "success", "data": []}
     for adoption in adoptions:
         adoption_id = str(adoption["_id"])
         customer_id = str(adoption["customer_id"])
         pet_id = str(adoption["pet_id"])
         timestamp = adoption["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
-        adoption_list.append({
+        adoption_list["data"].append({
             "adoption_id": adoption_id,
-            "customer_id": customer_id,
-            "pet_id": pet_id,
+            "customer_id":  db.customers.find_one({"_id": ObjectId(customer_id)}),
+            "pet_id": db.pets.find_one({"_id": ObjectId(pet_id)}),
             "timestamp": timestamp
         })
 
