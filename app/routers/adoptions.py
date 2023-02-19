@@ -28,7 +28,7 @@ async def create_adoption(customer_id: str = Form(), pet_id: str = Form()):
     result = db.adoptions.insert_one({
         "customer_id": customer_id,
         "pet_id": pet_id,
-        "timestamp": datetime.date.today()
+        "timestamp": datetime.datetime.utcnow()
     })
     return {"status": "success", "adoption_id": str(result.inserted_id)}
 
@@ -40,11 +40,12 @@ async def get_adoptions(fromDate: Optional[datetime.date] = None, toDate: Option
         fromDate = datetime.date.min
     if toDate is None:
         toDate = datetime.date.max
-
+    fromDate = datetime.datetime.combine(fromDate, datetime.time.min)
+    toDate = datetime.datetime.combine(toDate, datetime.time.min)
     # retrieve all adoption records within the date range
     adoptions = db.adoptions.find({
         "timestamp": {"$gte": fromDate, "$lt": toDate}
-    }).sort([("timestamp", pymongo.DESCENDING)])
+    })
 
     # format the adoption records for output
 
@@ -64,4 +65,4 @@ async def get_adoptions(fromDate: Optional[datetime.date] = None, toDate: Option
     if limit:
         adoption_list = adoption_list[:limit]
 
-    return {"status": "success", "data": adoption_list[::-1]}
+    return {"status": "success", "data": adoption_list}
