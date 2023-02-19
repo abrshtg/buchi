@@ -2,15 +2,15 @@ import pytest
 from datetime import datetime
 from bson import ObjectId
 
-from app.database import db
-from reports import generate_report
+from app import database
+from app.routers.reports import generate_report
 
 
 def test_generate_report():
     # Set up test data
 
-    pets_collection = db['pets']
-    adoptions_collection = db['adoptions']
+    pets_collection = database.db['pets']
+    adoptions_collection = database.db['adoptions']
 
     # Insert a test pet
     pet = {

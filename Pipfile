@@ -12,6 +12,7 @@ pymongo = "*"
 mongoengine = "*"
 python-dotenv = "*"
 cloudinary = "*"
+pytest = "*"
 
 [dev-packages]
 autopep8 = "*"

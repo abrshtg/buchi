@@ -34,7 +34,7 @@ async def create_adoption(customer_id: str = Form(), pet_id: str = Form()):
 
 
 @router.get("/api/v1/adoptions")
-async def get_adoptions(fromDate: Optional[datetime] = None, toDate: Optional[datetime] = None):
+async def get_adoptions(fromDate: Optional[datetime] = None, toDate: Optional[datetime] = None, limit: int = None):
     # set default start and end dates if none are provided
     if fromDate is None:
         fromDate = datetime.min
@@ -48,17 +48,20 @@ async def get_adoptions(fromDate: Optional[datetime] = None, toDate: Optional[da
 
     # format the adoption records for output
 
-    adoption_list = {"status": "success", "data": []}
+    adoption_list = []
     for adoption in adoptions:
         adoption_id = str(adoption["_id"])
         customer_id = str(adoption["customer_id"])
         pet_id = str(adoption["pet_id"])
         timestamp = adoption["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
-        adoption_list["data"].append({
+        adoption_list.append({
             "adoption_id": adoption_id,
             "customer_id":  db.customers.find_one({"_id": ObjectId(customer_id)}),
             "pet_id": db.pets.find_one({"_id": ObjectId(pet_id)}),
             "timestamp": timestamp
         })
 
-    return adoption_list
+    if limit:
+        adoption_list = adoption_list[:limit]
+
+    return {"status": "success", "data": adoption_list.reverse()}
