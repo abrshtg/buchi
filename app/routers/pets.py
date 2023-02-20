@@ -1,15 +1,19 @@
-import os
+import sched
+import time
 import pydantic
-import requests
 from typing import List
+import requests
 from models.pets import Pet
 from database import connection
+from dotenv import dotenv_values
 from bson.objectid import ObjectId
 from cloudinary.uploader import upload
 from fastapi import APIRouter, HTTPException, File, Query, UploadFile
 
 pydantic.json.ENCODERS_BY_TYPE[ObjectId] = str
 router = APIRouter()
+env = dotenv_values('../.env')
+access_token: str = ''
 
 
 @router.post("/api/v1/pets")
@@ -71,16 +75,42 @@ async def search_pets(pet_type: str = Query(None), good_with_children: bool = Qu
     if size is not None:
         queryset = queryset.filter(size__in=[s.lower() for s in size])
         search2["size"] = ','.join(size)
-    import json
     local_results = queryset.limit(limit)
-    print()
-    # search for additional pets using the Petfinder API
-    petfinder_results = []
 
-    # make request to Petfinder API
+    def get_access_token():
+        global access_token
+        url = 'https://api.petfinder.com/v2/oauth2/token'
+        data = {
+            "grant_type": "client_credentials",
+            'client_id': env.get('CLIENT_ID'),
+            'client_secret': env.get('CLIENT_SECRET')
+        }
+        response = requests.post(url, data=data)
+
+        with open('petfinder_token.txt', '+w') as api_token:
+            api_token.write(response.json()['access_token'])
+        with open('petfinder_token.txt', 'r') as api_token:
+            access_token = api_token.readline()
+
+    scheduler = sched.scheduler(time.time, time.sleep)
+    scheduler.enter(3000, 1, get_access_token)
+    petfinder_results = []
+    with open('petfinder_token.txt', 'r') as api_token:
+        access_token = api_token.readline()
+
+    # search for additional pets using the Petfinder API
     response = requests.get('https://api.petfinder.com/v2/animals', params=search2, headers={
-        'Authorization': f'Bearer {os.environ.get("PET_ACCESS_TOKEN")}'
+        'Authorization': f'Bearer {access_token}'
     })
+    print('access_token_top: ', access_token)
+
+    if response.status_code == 401:
+        print('access_point expired we are regenerating it...')
+        get_access_token()
+        response = requests.get('https://api.petfinder.com/v2/animals', params=search2, headers={
+            'Authorization': f'Bearer {access_token}'
+        })
+    print('access_token_bottom: ', access_token)
     # check if request was successful
     if response.status_code == 200:
         # extract relevant data from response
@@ -106,4 +136,5 @@ async def search_pets(pet_type: str = Query(None), good_with_children: bool = Qu
     # combine the local and Petfinder results and return them
     results = [q.to_mongo().to_dict()
                for q in local_results] + petfinder_results
+
     return {"status": "success", "pets": results[:limit]}
