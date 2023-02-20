@@ -46,8 +46,7 @@ async def create_pet(name: str, pet_type: str, good_with_children: bool, age: st
     pet = Pet(name=name, type=pet_type.lower(),
               good_with_children=str(good_with_children).lower(),
               age=age.lower(), gender=gender.lower(),
-              size=size.lower(), photo_url=img_url
-              )
+              size=size.lower(), photo_url=img_url)
     pet.save()
 
     return {"status": "success", "id": pet.pk}
@@ -56,7 +55,6 @@ async def create_pet(name: str, pet_type: str, good_with_children: bool, age: st
 @router.get("/api/v1/pets")
 async def search_pets(pet_type: str = Query(None), good_with_children: bool = Query(None), age: List[str] = Query(None), gender: List[str] = Query(None), size: List[str] = Query(None), limit: int = Query(...)):
     # search for pets in the local database
-    search1 = {}
     search2 = {}
     queryset = Pet.objects.all()
     if pet_type is not None:
@@ -102,7 +100,6 @@ async def search_pets(pet_type: str = Query(None), good_with_children: bool = Qu
     response = requests.get('https://api.petfinder.com/v2/animals', params=search2, headers={
         'Authorization': f'Bearer {access_token}'
     })
-    print('access_token_top: ', access_token)
 
     if response.status_code == 401:
         print('access_point expired we are regenerating it...')
@@ -110,15 +107,13 @@ async def search_pets(pet_type: str = Query(None), good_with_children: bool = Qu
         response = requests.get('https://api.petfinder.com/v2/animals', params=search2, headers={
             'Authorization': f'Bearer {access_token}'
         })
-    print('access_token_bottom: ', access_token)
+
     # check if request was successful
     if response.status_code == 200:
         # extract relevant data from response
         data = response.json()['animals']
-        # print('*'*10, data[5]['photos'])
 
         for pet in data:
-            # print(pet['photos'][''])
             petfinder_results.append({
                 "source": "petfinder",
                 "name": pet['name'],

@@ -19,38 +19,42 @@ def generate_report(fromDate: str, toDate: str):
     weekly_adoption_requests = {}
 
     # Convert the date strings to datetime objects
-    from_date_obj = datetime.strptime(fromDate, "%Y-%m-%d")
-    to_date_obj = datetime.strptime(toDate, "%Y-%m-%d")
+    from_date = datetime.strptime(fromDate, "%Y-%m-%d")
+    to_date = datetime.strptime(toDate, "%Y-%m-%d") + timedelta(days=1)
 
     # Query the database for adoptions within the date range
     adoptions = Adoption.objects.filter(
-        adoption_date__gte=from_date_obj, adoption_date__lte=to_date_obj)
-    print(adoptions)
+        adoption_date__gte=from_date, adoption_date__lte=to_date)
 
     # Calculate the number of adoptions for each pet type
-    for pet_type in Pet.objects.distinct('pet_type'):
-        adopted_pet_types[pet_type] = adoptions.filter(
-            pet__pet_type=pet_type).count()
+    for adoption in adoptions:
+        pet_type = adoption.pet.type
+        if pet_type in adopted_pet_types:
+            adopted_pet_types[pet_type] += 1
+        else:
+            adopted_pet_types[pet_type] = 1
 
-    # Calculate the number of adoptions for each week in the date range
-    current_week = from_date_obj.date().isocalendar()[1]
-    while (from_date_obj.date().isocalendar()[1] <= current_week) and (from_date_obj <= to_date_obj):
-        start_of_week = from_date_obj.date() - timedelta(days=from_date_obj.date().weekday())
-        end_of_week = start_of_week + timedelta(days=6)
-        week_str = start_of_week.strftime(
-            "%Y-%m-%d") + " - " + end_of_week.strftime("%Y-%m-%d")
-        weekly_adoption_requests[week_str] = adoptions.filter(
-            adoption_date__gte=start_of_week, adoption_date__lte=end_of_week).count()
-        from_date_obj += timedelta(days=7)
+  # Count adoption requests by week
+    start_date = from_date - timedelta(days=from_date.weekday())
+    end_date = to_date + timedelta(days=6-to_date.weekday())
+    current_date = start_date
+    while current_date <= end_date:
+        week_start = current_date.strftime('%Y-%m-%d')
+        week_end = (current_date + timedelta(days=6)).strftime('%Y-%m-%d')
+        weekly_adoption_requests[week_start] = 0
+        for adoption in adoptions:
+            if week_start <= str(adoption.adoption_date.date()) <= week_end:
+                weekly_adoption_requests[week_start] += 1
+        current_date += timedelta(days=7)
 
-    # Return the report data
-    return {
-        "status": "success",
-        "data": {
-            "adoptedPetTypes": adopted_pet_types,
-            "weeklyAdoptionRequests": weekly_adoption_requests
-        }
+    report_data = {
+        'adoptedPetTypes': adopted_pet_types,
+        'weeklyAdoptionRequests': weekly_adoption_requests
     }
-    # except ValidationError as e:
-    #     print(e.errors())
-    #     raise HTTPException(status_code=400, detail="Validation error")
+
+    report = {
+        'status': 'success',
+        'data': report_data
+    }
+
+    return report
