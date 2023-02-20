@@ -60,6 +60,8 @@ async def get_adoptions(fromDate: Optional[datetime.date] = None, toDate: Option
         adopt.update(adopter)
         adopt.update(adopted_id)
         adopt.update(adopted)
+
+        adopt['adoption_date'] = adoption.adoption_date.date()
         adoption_list.append(adopt)
 
     if limit:
