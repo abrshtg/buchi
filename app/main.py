@@ -9,6 +9,6 @@ app.include_router(pets.router)
 app.include_router(reports.router)
 
 
-@app.get('/images/{img}')
-def image(img: str):
-    return FileResponse("images/" + img)
+@app.get('/')
+def home():
+    return {"buchi_api_swagger_docs": "https://buchi-api.onrender.com/docs"}
