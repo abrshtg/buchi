@@ -1,14 +1,14 @@
 import os
-from bson.objectid import ObjectId
-from typing import List
-from fastapi import APIRouter, HTTPException, File, Query, UploadFile
-from database import db
 import pydantic
-from cloudinary.uploader import upload
 import requests
+from typing import List
+from models.pets import Pet
+from database import connection
+from bson.objectid import ObjectId
+from cloudinary.uploader import upload
+from fastapi import APIRouter, HTTPException, File, Query, UploadFile
 
 pydantic.json.ENCODERS_BY_TYPE[ObjectId] = str
-
 router = APIRouter()
 
 
@@ -38,21 +38,15 @@ async def create_pet(name: str, pet_type: str, good_with_children: bool, age: st
         f = upload(img.file)
         img_url.append(f.get('url'))
 
-    pet_data = {
-        "source": "local",
-        "name": name,
-        "type": pet_type.lower(),
-        "good_with_children": str(good_with_children).lower(),
-        "age": age.lower(),
-        "gender": gender.lower(),
-        "size": size.lower(),
-        "photo_url": img_url,
-    }
-
     # insert the pet into the database and get its id
-    pet_id = db.pets.insert_one(pet_data).inserted_id
+    pet = Pet(name=name, type=pet_type.lower(),
+              good_with_children=str(good_with_children).lower(),
+              age=age.lower(), gender=gender.lower(),
+              size=size.lower(), photo_url=img_url
+              )
+    pet.save()
 
-    return {"status": "success", "id": str(pet_id)}
+    return {"status": "success", "id": pet.pk}
 
 
 @router.get("/api/v1/pets")
@@ -60,24 +54,26 @@ async def search_pets(pet_type: str = Query(None), good_with_children: bool = Qu
     # search for pets in the local database
     search1 = {}
     search2 = {}
+    queryset = Pet.objects.all()
     if pet_type is not None:
-        search1["type"] = search2["type"] = pet_type.lower()
+        pet = search2["type"] = pet_type.lower()
+        queryset = queryset.filter(type__iexact=pet)
     if good_with_children is not None:
-        search1["good_with_children"] = search2["good_with_children"] = str(
+        is_good = search2["good_with_children"] = str(
             good_with_children).lower()
+        queryset = queryset.filter(good_with_children=is_good)
     if age is not None:
-        search1["age"] = {"$in": [a.lower() for a in age]}
         search2["age"] = ','.join(age)
+        queryset = queryset.filter(age__in=[a.lower() for a in age])
     if gender is not None:
-        search1["gender"] = {"$in": [g.lower() for g in gender]}
+        queryset = queryset.filter(gender__in=[g.lower() for g in gender])
         search2["gender"] = ','.join(gender)
     if size is not None:
-        search1["size"] = {"$in": [s.lower() for s in size]}
+        queryset = queryset.filter(size__in=[s.lower() for s in size])
         search2["size"] = ','.join(size)
-
-    local_results = list(db.pets.find(search1).limit(limit))
-
-    print(search1)
+    import json
+    local_results = queryset.limit(limit)
+    print()
     # search for additional pets using the Petfinder API
     petfinder_results = []
 
@@ -85,7 +81,6 @@ async def search_pets(pet_type: str = Query(None), good_with_children: bool = Qu
     response = requests.get('https://api.petfinder.com/v2/animals', params=search2, headers={
         'Authorization': f'Bearer {os.environ.get("PET_ACCESS_TOKEN")}'
     })
-    print('response: ', response.json())
     # check if request was successful
     if response.status_code == 200:
         # extract relevant data from response
@@ -105,10 +100,10 @@ async def search_pets(pet_type: str = Query(None), good_with_children: bool = Qu
                 "photo_url": pet['photos']
             })
     else:
-        print('Error: ', response.json())
         raise HTTPException(
             status_code=response.json()['status'], detail=response.json())
 
     # combine the local and Petfinder results and return them
-    results = local_results + petfinder_results
+    results = [q.to_mongo().to_dict()
+               for q in local_results] + petfinder_results
     return {"status": "success", "pets": results[:limit]}
