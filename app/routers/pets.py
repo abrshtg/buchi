@@ -13,7 +13,9 @@ from fastapi import APIRouter, HTTPException, File, Query, UploadFile
 pydantic.json.ENCODERS_BY_TYPE[ObjectId] = str
 router = APIRouter()
 env = dotenv_values('../.env')
-access_token: str = ''
+
+
+access_token = ''
 
 
 @router.post("/api/v1/pets")
@@ -85,19 +87,11 @@ async def search_pets(pet_type: str = Query(None), good_with_children: bool = Qu
             'client_secret': env.get('CLIENT_SECRET')
         }
         response = requests.post(url, data=data)
+        access_token = response.json().get('access_token')
 
-        with open('petfinder_token.txt', '+w') as api_token:
-            api_token.write(response.json().get('access_token'))
-        with open('petfinder_token.txt', 'r') as api_token:
-            access_token = api_token.readline()
         return access_token
-    scheduler = sched.scheduler(time.time, time.sleep)
-    scheduler.enter(30, 1, get_access_token)
-    petfinder_results = []
-    with open('petfinder_token.txt', 'r') as api_token:
-        access_token = api_token.readline()
-
     # search for additional pets using the Petfinder API
+    global access_token
     response = requests.get('https://api.petfinder.com/v2/animals', params=search2, headers={
         'Authorization': f'Bearer {access_token}'
     })
@@ -113,7 +107,7 @@ async def search_pets(pet_type: str = Query(None), good_with_children: bool = Qu
     if response.status_code == 200:
         # extract relevant data from response
         data = response.json()['animals']
-
+        petfinder_results = []
         for pet in data:
             petfinder_results.append({
                 "source": "petfinder",
