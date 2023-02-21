@@ -86,7 +86,7 @@ async def search_pets(pet_type: str = Query(None), good_with_children: bool = Qu
         response = requests.post(url, data=data)
 
         with open('petfinder_token.txt', '+w') as api_token:
-            api_token.write(response.json()['access_token'])
+            api_token.write(response.json().get('access_token'))
         with open('petfinder_token.txt', 'r') as api_token:
             access_token = api_token.readline()
 
