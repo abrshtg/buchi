@@ -1,5 +1,4 @@
-import sched
-import time
+import os
 import pydantic
 from typing import List
 import requests
@@ -83,8 +82,8 @@ async def search_pets(pet_type: str = Query(None), good_with_children: bool = Qu
         url = 'https://api.petfinder.com/v2/oauth2/token'
         data = {
             "grant_type": "client_credentials",
-            'client_id': env.get('CLIENT_ID'),
-            'client_secret': env.get('CLIENT_SECRET')
+            'client_id': os.environ.get('CLIENT_ID'),
+            'client_secret': os.environ.get('CLIENT_SECRET')
         }
         response = requests.post(url, data=data)
         access_token = response.json().get('access_token')
