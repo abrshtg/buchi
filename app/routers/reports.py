@@ -14,6 +14,12 @@ router = APIRouter()
 @router.get("/api/v1/generateReport")
 def generate_report(fromDate: str, toDate: str):
     # try:
+    try:
+        datetime.strptime(fromDate, "%Y-%m-%d")
+        datetime.strptime(toDate, "%Y-%m-%d")
+    except ValueError:
+        raise HTTPException(
+            status_code=400, detail="Wrong date format. Date must be like this: 2023-02-02")
 
     adopted_pet_types = {}
     weekly_adoption_requests = {}
