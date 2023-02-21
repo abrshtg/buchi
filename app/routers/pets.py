@@ -76,6 +76,7 @@ async def search_pets(pet_type: str = Query(None), good_with_children: bool = Qu
     local_results = queryset.limit(limit)
 
     def get_access_token():
+        print('get_access_token')
         global access_token
         url = 'https://api.petfinder.com/v2/oauth2/token'
         data = {
@@ -89,9 +90,9 @@ async def search_pets(pet_type: str = Query(None), good_with_children: bool = Qu
             api_token.write(response.json().get('access_token'))
         with open('petfinder_token.txt', 'r') as api_token:
             access_token = api_token.readline()
-
+        return access_token
     scheduler = sched.scheduler(time.time, time.sleep)
-    scheduler.enter(3000, 1, get_access_token)
+    scheduler.enter(30, 1, get_access_token)
     petfinder_results = []
     with open('petfinder_token.txt', 'r') as api_token:
         access_token = api_token.readline()
@@ -103,7 +104,7 @@ async def search_pets(pet_type: str = Query(None), good_with_children: bool = Qu
 
     if response.status_code == 401:
         print('access_point expired we are regenerating it...')
-        get_access_token()
+        access_token = get_access_token()
         response = requests.get('https://api.petfinder.com/v2/animals', params=search2, headers={
             'Authorization': f'Bearer {access_token}'
         })
