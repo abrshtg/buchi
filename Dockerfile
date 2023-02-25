@@ -6,5 +6,5 @@ WORKDIR /usr/scr/buchi
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
-WORKDIR /usr/scr/buchi/app
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+WORKDIR /usr/scr/buchi
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
