@@ -1,6 +1,6 @@
 from typing import List
-from fastapi import File, Query, UploadFile
-from mongoengine import *
+from fastapi import File, UploadFile
+from mongoengine import Document, StringField, BooleanField, ListField
 from pydantic import BaseModel
 
 

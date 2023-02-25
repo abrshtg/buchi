@@ -1,7 +1,8 @@
+import datetime
+
 from bson import ObjectId
 from pydantic import BaseModel, validator
-from mongoengine import *
-import datetime
+from mongoengine import Document, ReferenceField, DateTimeField, ValidationError
 
 
 class Adoption(Document):

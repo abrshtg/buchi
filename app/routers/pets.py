@@ -1,20 +1,22 @@
 import os
-import pydantic
 from typing import List
+
 import requests
-from app.models.pets import Pet
-from app.database import connection
+import pydantic
 from dotenv import dotenv_values
 from bson.objectid import ObjectId
 from cloudinary.uploader import upload
 from fastapi import APIRouter, HTTPException, File, Query, UploadFile
+
+from app.models.pets import Pet
+from app.database import connection
 
 pydantic.json.ENCODERS_BY_TYPE[ObjectId] = str
 router = APIRouter()
 env = dotenv_values('../.env')
 
 
-access_token = ''
+ACCESS_TOKEN = ''
 
 
 @router.post("/api/v1/pets")
@@ -78,7 +80,7 @@ async def search_pets(pet_type: str = Query(None), good_with_children: bool = Qu
 
     def get_access_token():
         print('get_access_token')
-        global access_token
+        global ACCESS_TOKEN
         url = 'https://api.petfinder.com/v2/oauth2/token'
         data = {
             "grant_type": "client_credentials",
@@ -86,20 +88,20 @@ async def search_pets(pet_type: str = Query(None), good_with_children: bool = Qu
             'client_secret': os.environ.get('CLIENT_SECRET')
         }
         response = requests.post(url, data=data)
-        access_token = response.json().get('access_token')
+        ACCESS_TOKEN = response.json().get('access_token')
 
-        return access_token
+        return ACCESS_TOKEN
     # search for additional pets using the Petfinder API
-    global access_token
+    global ACCESS_TOKEN
     response = requests.get('https://api.petfinder.com/v2/animals', params=search2, headers={
-        'Authorization': f'Bearer {access_token}'
+        'Authorization': f'Bearer {ACCESS_TOKEN}'
     })
 
     if response.status_code == 401:
         print('access_point expired we are regenerating it...')
-        access_token = get_access_token()
+        ACCESS_TOKEN = get_access_token()
         response = requests.get('https://api.petfinder.com/v2/animals', params=search2, headers={
-            'Authorization': f'Bearer {access_token}'
+            'Authorization': f'Bearer {ACCESS_TOKEN}'
         })
 
     # check if request was successful

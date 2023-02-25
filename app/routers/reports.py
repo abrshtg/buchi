@@ -1,12 +1,9 @@
-from pydantic import ValidationError
-from app.models.adoptions import Adoption
-from app.models.pets import Pet
-from typing import Dict
 from datetime import datetime, timedelta
+
 from fastapi import APIRouter, HTTPException
-from datetime import datetime
-from typing import Dict, List
+
 from app.database import connection
+from app.models.adoptions import Adoption
 
 router = APIRouter()
 

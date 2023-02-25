@@ -1,11 +1,12 @@
-from fastapi import APIRouter, HTTPException, Form
+import datetime
+from typing import Optional
+
+from fastapi import APIRouter, HTTPException
+
+from app.database import connection
 from app.models.adoptions import Adoption, AdoptionInput
 from app.models.customers import Customer
 from app.models.pets import Pet
-from app.database import connection
-from typing import Optional
-from bson import ObjectId
-import datetime
 
 
 router = APIRouter()
