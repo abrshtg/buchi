@@ -2,8 +2,8 @@ import os
 import pydantic
 from typing import List
 import requests
-from models.pets import Pet
-from database import connection
+from app.models.pets import Pet
+from app.database import connection
 from dotenv import dotenv_values
 from bson.objectid import ObjectId
 from cloudinary.uploader import upload

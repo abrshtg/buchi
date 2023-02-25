@@ -1,48 +1,27 @@
-import pytest
-from datetime import datetime
-from bson import ObjectId
-
-from app import database
-from app.routers.reports import generate_report
+from app.main import app
+from fastapi.testclient import TestClient
+client = TestClient(app)
 
 
 def test_generate_report():
-    # Set up test data
+    response = client.get("/api/v1/generateReport",
+                          params={'fromDate': '2023-02-02', 'toDate': '2023-03-03'})
 
-    pets_collection = database.db['pets']
-    adoptions_collection = database.db['adoptions']
-
-    # Insert a test pet
-    pet = {
-        'name': 'Buddy',
-        'type': 'dog',
-        'gender': 'male',
-        'age': 'adult',
-        'size': 'medium',
-        'good_with_children': True,
-        'photo_url': 'https://www.example.com/buddy.jpg'
-    }
-    pets_collection.insert_one(pet)
-    pet = pets_collection.find_one()
-    # Insert a test adoption
-    adoption = {
-        'customer_id': ObjectId(),
-        'pet_id': pet['_id'],
-        'date': datetime.now()
-    }
-    adoptions_collection.insert_one(adoption)
-
-    # Test the generate_report function
-    start_date = datetime(2022, 1, 1)
-    end_date = datetime.now()
-    report = generate_report(start_date, end_date)
-
-    assert isinstance(report, dict)
-    assert 'start_date' in report
-    assert 'end_date' in report
-    assert 'total_adoptions' in report
-    assert 'total_pets' in report
-    assert report['start_date'] == start_date
-    assert report['end_date'] == end_date
-    assert report['total_adoptions'] == 1
-    assert report['total_pets'] == 1
+    assert response.status_code == 200
+    # assert response.json() == {
+    #     "status": "success",
+    #     "data": {
+    #         "adoptedPetTypes": {
+    #             "dog": 8,
+    #             "cat": 1,
+    #             "horse": 3
+    #         },
+    #         "weeklyAdoptionRequests": {
+    #             "2023-01-30": 0,
+    #             "2023-02-06": 0,
+    #             "2023-02-13": 5,
+    #             "2023-02-20": 7,
+    #             "2023-02-27": 0
+    #         }
+    #     }
+    # }

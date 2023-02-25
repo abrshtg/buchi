@@ -1,6 +1,5 @@
 from fastapi import FastAPI
-from fastapi.responses import FileResponse
-from routers import adoptions, customers, pets, reports
+from app.routers import adoptions, customers, pets, reports
 app = FastAPI()
 
 app.include_router(adoptions.router)

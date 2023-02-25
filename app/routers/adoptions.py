@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, Form
-from models.adoptions import Adoption, AdoptionInput
-from models.customers import Customer
-from models.pets import Pet
-from database import connection
+from app.models.adoptions import Adoption, AdoptionInput
+from app.models.customers import Customer
+from app.models.pets import Pet
+from app.database import connection
 from typing import Optional
 from bson import ObjectId
 import datetime
