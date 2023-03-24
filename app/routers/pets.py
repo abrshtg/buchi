@@ -78,6 +78,7 @@ async def search_pets(*,
         pet = search2["type"] = pet_type.lower()
         queryset = queryset.filter(type__iexact=pet)
     if good_with_children is not None:
+        search2['good_with_children'] = good_with_children
         queryset = queryset.filter(good_with_children=good_with_children)
     if age is not None:
         search2["age"] = ','.join(age)
