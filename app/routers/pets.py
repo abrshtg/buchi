@@ -1,15 +1,14 @@
 import os
-from typing import List
 
-import requests
 import pydantic
-from dotenv import dotenv_values
+import requests
 from bson.objectid import ObjectId
 from cloudinary.uploader import upload
-from fastapi import APIRouter, HTTPException, File, Query, UploadFile
+from dotenv import dotenv_values
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 
-from app.models.pets import Pet
 from app.database import connection
+from app.models.pets import Pet
 
 pydantic.json.ENCODERS_BY_TYPE[ObjectId] = str
 router = APIRouter()
@@ -20,7 +19,12 @@ ACCESS_TOKEN = ''
 
 
 @router.post("/api/v1/pets")
-async def create_pet(name: str, pet_type: str, good_with_children: bool, age: str, gender: str, size: str, photos: List[UploadFile] = File(...)):
+async def create_pet(name: str = Form(),
+                     pet_type: str = Form(),
+                     good_with_children: bool = Form(),
+                     age: str = Form(), gender: str = Form(),
+                     size: str = Form(),
+                     photos: list[UploadFile] = File(...)):
 
     # Validate the data
     if not name:
@@ -46,17 +50,27 @@ async def create_pet(name: str, pet_type: str, good_with_children: bool, age: st
         img_url.append(f.get('url'))
 
     # insert the pet into the database and get its id
-    pet = Pet(name=name, type=pet_type.lower(),
-              good_with_children=str(good_with_children).lower(),
-              age=age.lower(), gender=gender.lower(),
-              size=size.lower(), photo_url=img_url)
+    pet = Pet(name=name,
+              age=age.lower(),
+              size=size.lower(),
+              photo_url=img_url,
+              type=pet_type.lower(),
+              gender=gender.lower(),
+              good_with_children=good_with_children)
     pet.save()
 
     return {"status": "success", "id": pet.pk}
 
 
 @router.get("/api/v1/pets")
-async def search_pets(pet_type: str = Query(None), good_with_children: bool = Query(None), age: List[str] = Query(None), gender: List[str] = Query(None), size: List[str] = Query(None), limit: int = Query(...)):
+async def search_pets(*,
+                      pet_type: str = None,
+                      age: list[str] = None,
+                      size: list[str] = None,
+                      gender: list[str] = None,
+                      good_with_children: bool = None,
+                      limit: int):
+
     # search for pets in the local database
     search2 = {}
     queryset = Pet.objects.all()
@@ -64,9 +78,7 @@ async def search_pets(pet_type: str = Query(None), good_with_children: bool = Qu
         pet = search2["type"] = pet_type.lower()
         queryset = queryset.filter(type__iexact=pet)
     if good_with_children is not None:
-        is_good = search2["good_with_children"] = str(
-            good_with_children).lower()
-        queryset = queryset.filter(good_with_children=is_good)
+        queryset = queryset.filter(good_with_children=good_with_children)
     if age is not None:
         search2["age"] = ','.join(age)
         queryset = queryset.filter(age__in=[a.lower() for a in age])

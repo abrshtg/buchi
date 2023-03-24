@@ -1,7 +1,9 @@
-from mongoengine import connect
-from dotenv import dotenv_values
-import cloudinary
 import os
+
+import cloudinary
+from dotenv import dotenv_values
+from mongoengine import connect
+
 config = dotenv_values('../.env')
 
 cloudinary.config(

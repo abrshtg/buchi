@@ -8,7 +8,6 @@ from app.models.adoptions import Adoption, AdoptionInput
 from app.models.customers import Customer
 from app.models.pets import Pet
 
-
 router = APIRouter()
 
 

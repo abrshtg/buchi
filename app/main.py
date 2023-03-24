@@ -1,5 +1,7 @@
 from fastapi import FastAPI
+
 from app.routers import adoptions, customers, pets, reports
+
 app = FastAPI()
 
 app.include_router(adoptions.router)

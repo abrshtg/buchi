@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
-from app.models.customers import Customer, CustomerInput
 from app.database import connection
+from app.models.customers import Customer, CustomerInput
 
 router = APIRouter()
 
