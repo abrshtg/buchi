@@ -5,7 +5,7 @@ import requests
 from bson.objectid import ObjectId
 from cloudinary.uploader import upload
 from dotenv import dotenv_values
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile
 
 from app.database import connection
 from app.models.pets import Pet
@@ -65,9 +65,9 @@ async def create_pet(name: str = Form(),
 @router.get("/api/v1/pets")
 async def search_pets(*,
                       pet_type: str = None,
-                      age: list[str] = None,
-                      size: list[str] = None,
-                      gender: list[str] = None,
+                      age: list[str] = Query(None),
+                      size: list[str] = Query(None),
+                      gender: list[str] = Query(None),
                       good_with_children: bool = None,
                       limit: int):
 
