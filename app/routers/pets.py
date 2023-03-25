@@ -9,7 +9,7 @@ from dotenv import dotenv_values
 from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile
 
 from app.database import connection
-from app.models.pets import Pet
+from app.models.pets import Pet, PetOutput
 
 pydantic.json.ENCODERS_BY_TYPE[ObjectId] = str
 router = APIRouter()
@@ -63,7 +63,7 @@ async def create_pet(name: str = Form(),
     return {"status": "success", "id": pet.pk}
 
 
-@router.get("/api/v1/pets")
+@router.get("/api/v1/pets", response_model=PetOutput)
 async def search_pets(*,
                       pet_type: str = None,
                       age: list[str] = Query(None),

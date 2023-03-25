@@ -2,7 +2,7 @@ from typing import List
 
 from fastapi import File, UploadFile
 from mongoengine import BooleanField, Document, ListField, StringField
-from pydantic import BaseModel
+from pydantic import AnyUrl, BaseModel
 
 
 class Pet(Document):
@@ -24,11 +24,17 @@ class Pet(Document):
             return None
 
 
-class PetInput(BaseModel):
+class PetBase(BaseModel):
+    source: str
     name: str
     type: str
     age: str
     gender: str
     size: str
-    good_with_children: bool
-    photos: List[UploadFile] = File(...)
+    good_with_children: bool | None
+    photo_url: list
+
+
+class PetOutput(BaseModel):
+    status: str = 'success'
+    pets: list[PetBase]
