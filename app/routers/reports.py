@@ -4,11 +4,12 @@ from fastapi import APIRouter, HTTPException
 
 from app.database import connection
 from app.models.adoptions import Adoption
+from app.models.report import Report
 
 router = APIRouter()
 
 
-@router.get("/api/v1/generateReport")
+@router.get("/api/v1/generateReport", response_model=Report)
 def generate_report(fromDate: str, toDate: str):
     # try:
     try:
