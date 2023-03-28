@@ -14,6 +14,10 @@ python-dotenv = "*"
 cloudinary = "*"
 pytest = "*"
 httpx = "*"
+python-jose = {extras = ["cryptography"], version = "*"}
+passlib = {extras = ["bcrypt"], version = "*"}
+pydantic = {extras = ["email"], version = "*"}
+pydash = "*"
 
 [dev-packages]
 autopep8 = "*"

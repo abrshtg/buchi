@@ -6,7 +6,9 @@ import requests
 from bson.objectid import ObjectId
 from cloudinary.uploader import upload
 from dotenv import dotenv_values
-from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile
+from fastapi import (APIRouter, Depends, File, Form, HTTPException, Query,
+                     UploadFile)
+from fastapi.security import OAuth2PasswordBearer
 
 from app.database import connection
 from app.models.pets import Pet, PetOutput
@@ -25,7 +27,8 @@ async def create_pet(name: str = Form(),
                      good_with_children: bool = Form(),
                      age: str = Form(), gender: str = Form(),
                      size: str = Form(),
-                     photos: list[UploadFile] = File(...)):
+                     photos: list[UploadFile] = File(...), token: str = Depends(OAuth2PasswordBearer(tokenUrl='token')),
+                     ):
 
     # Validate the data
     if not name:

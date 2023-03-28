@@ -1,8 +1,5 @@
-from typing import List
-
-from fastapi import File, UploadFile
 from mongoengine import BooleanField, Document, ListField, StringField
-from pydantic import AnyUrl, BaseModel
+from pydantic import BaseModel
 
 
 class Pet(Document):
