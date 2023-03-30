@@ -11,7 +11,7 @@ from fastapi import (APIRouter, Depends, File, Form, HTTPException, Query,
 from fastapi.security import OAuth2PasswordBearer
 
 from app.database import connection
-from app.models.pets import Pet, PetOutput
+from app.models.pets import Pet
 
 pydantic.json.ENCODERS_BY_TYPE[ObjectId] = str
 router = APIRouter()
@@ -27,7 +27,9 @@ async def create_pet(name: str = Form(),
                      good_with_children: bool = Form(),
                      age: str = Form(), gender: str = Form(),
                      size: str = Form(),
-                     photos: list[UploadFile] = File(...), token: str = Depends(OAuth2PasswordBearer(tokenUrl='token')),
+                     photos: list[UploadFile] = File(...),
+                     token: str = Depends(
+                         OAuth2PasswordBearer(tokenUrl='token')),
                      ):
 
     # Validate the data
@@ -66,7 +68,7 @@ async def create_pet(name: str = Form(),
     return {"status": "success", "id": pet.pk}
 
 
-@router.get("/api/v1/pets", response_model=PetOutput)
+@router.get("/api/v1/pets")
 async def search_pets(*,
                       pet_type: str = None,
                       age: list[str] = Query(None),
