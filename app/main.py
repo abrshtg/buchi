@@ -51,4 +51,7 @@ app.include_router(users.router, tags=['users'])
 
 @app.get('/', tags=['home'])
 async def home():
-    return {"buchi_api_swagger_docs": "https://buchi-api.onrender.com/docs"}
+    return {
+        "docs": "https://buchi-api.onrender.com/docs",
+        "redoc": "https://buchi-api.onrender.com/redoc"
+    }
