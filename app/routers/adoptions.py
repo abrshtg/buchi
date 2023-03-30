@@ -52,16 +52,11 @@ async def get_adoptions(fromDate: Optional[datetime.date] = None, toDate: Option
     adoption_list = []
     for adoption in adoptions:
         adopt = {}
-        adopter_id = {"customerId": adoption.customer.pk}
-        adopted_id = {"petId": adoption.pet.pk}
-        adopter = adoption.customer.to_mongo().to_dict()
-        adopted = adoption.pet.to_mongo().to_dict()
-        adopt.update(adopter_id)
-        adopt.update(adopter)
-        adopt.update(adopted_id)
-        adopt.update(adopted)
 
+        adopt['adoption_id'] = adoption.pk
         adopt['adoption_date'] = adoption.adoption_date.date()
+        adopt['customer'] = adoption.customer.to_mongo().to_dict()
+        adopt['pet'] = adoption.pet.to_mongo().to_dict()
         adoption_list.append(adopt)
 
     if limit:
