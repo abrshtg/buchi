@@ -12,6 +12,7 @@ from fastapi.security import OAuth2PasswordBearer
 
 from app.database import connection
 from app.models.pets import Pet
+from app.routers.users import get_current_user
 
 pydantic.json.ENCODERS_BY_TYPE[ObjectId] = str
 router = APIRouter()
@@ -28,8 +29,8 @@ async def create_pet(name: str = Form(),
                      age: str = Form(), gender: str = Form(),
                      size: str = Form(),
                      photos: list[UploadFile] = File(...),
-                     token: str = Depends(
-                         OAuth2PasswordBearer(tokenUrl='token')),
+                     user: str = Depends(
+                         get_current_user),
                      ):
 
     # Validate the data

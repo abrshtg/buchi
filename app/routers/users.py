@@ -22,7 +22,8 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(
 
 
 def verify_user(username, password):
-    user = User.objects.get(username=username)
+    user = User.objects(username=username).first()
+
     if not user:
         raise HTTPException(
             status_code=401, detail='Invalid username or password')
@@ -33,7 +34,6 @@ def verify_user(username, password):
 
 
 def create_access_token(username):
-    print(ACCESS_TOKEN_EXPIRE_MINUTES)
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     data = {"sub": username, "exp": expire}
     access_token = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
@@ -61,6 +61,8 @@ async def register(username: str = Form(),
                    email: EmailStr = Form(),
                    password: str = Form(),
                    confirm_password: str = Form()):
+    if User.objects(username=username):
+        raise HTTPException(status_code=400, detail='user already registerd')
 
     if password == confirm_password:
         hashed_password = pwd_context.hash(password)
