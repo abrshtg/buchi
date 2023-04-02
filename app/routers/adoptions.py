@@ -46,7 +46,7 @@ async def get_adoptions(fromDate: Optional[datetime.date] = None, toDate: Option
 
     # retrieve all adoption records within the date range
     adoptions = Adoption.objects.filter(
-        adoption_date__gte=fromDate, adoption_date__lte=toDate)
+        adoption_date__gte=fromDate, adoption_date__lte=toDate).select_related()
 
     # format the adoption records for output
     adoption_list = []
