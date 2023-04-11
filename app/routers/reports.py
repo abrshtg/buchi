@@ -28,7 +28,7 @@ def generate_report(fromDate: str, toDate: str):
 
     # Query the database for adoptions within the date range
     adoptions = Adoption.objects.filter(
-        adoption_date__gte=from_date, adoption_date__lte=to_date)
+        adoption_date__gte=from_date, adoption_date__lte=to_date).select_related()
 
     # Calculate the number of adoptions for each pet type
     for adoption in adoptions:
