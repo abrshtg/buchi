@@ -25,6 +25,9 @@ async def create_adoption(adoption: AdoptionInput):
         raise HTTPException(status_code=404, detail="Customer not found")
 
     pet = Pet.get_by_id_or_none(adoption.pet_id)
+    adopted = Adoption.objects.filter(pet=adoption.pet_id).first()
+    if adopted:
+        raise HTTPException(status_code=400, detail="pet is already adopted")
     if pet is None:
         raise HTTPException(status_code=404, detail="Pet not found")
 
