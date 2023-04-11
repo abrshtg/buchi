@@ -8,7 +8,6 @@ from cloudinary.uploader import upload
 from dotenv import load_dotenv
 from fastapi import (APIRouter, Depends, File, Form, HTTPException, Query,
                      UploadFile)
-from fastapi.security import OAuth2PasswordBearer
 
 from app.database import connection
 from app.models.pets import Pet
