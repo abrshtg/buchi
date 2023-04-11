@@ -1,10 +1,10 @@
 import os
 
 import cloudinary
-from dotenv import dotenv_values
+from dotenv import load_dotenv
 from mongoengine import connect
 
-config = dotenv_values('../.env')
+load_dotenv()
 
 cloudinary.config(
     api_key=os.environ.get('API_KEY'),

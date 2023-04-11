@@ -5,7 +5,7 @@ import pydantic
 import requests
 from bson.objectid import ObjectId
 from cloudinary.uploader import upload
-from dotenv import dotenv_values
+from dotenv import load_dotenv
 from fastapi import (APIRouter, Depends, File, Form, HTTPException, Query,
                      UploadFile)
 from fastapi.security import OAuth2PasswordBearer
@@ -15,8 +15,9 @@ from app.models.pets import Pet
 from app.routers.users import get_current_user
 
 pydantic.json.ENCODERS_BY_TYPE[ObjectId] = str
+load_dotenv()
+
 router = APIRouter()
-env = dotenv_values('../.env')
 
 
 ACCESS_TOKEN = ''

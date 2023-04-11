@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-import uvicorn
+
 from app.routers import adoptions, customers, pets, reports, users
 
 description = """
